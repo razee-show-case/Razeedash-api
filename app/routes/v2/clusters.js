@@ -185,9 +185,9 @@ const updateClusterResources = async (req, res, next) => {
             };
             options = { upsert: true };
             Stats.updateOne({ org_id: req.org._id }, { $inc: { deploymentCount: 1 } }, { upsert: true });
-
-            apolloCli.addResource({org_id: req.org._id, cluster_id: req.params.cluster_id, selfLink: selfLink, hash: resourceHash, searchableData: searchableDataObj, searchableDataHash: searchableDataHash});
           }
+
+          await apolloCli.upsertResource({deleted: false, org_id: req.org._id, cluster_id: req.params.cluster_id, selfLink: selfLink, hash: resourceHash, searchableData: searchableDataObj, searchableDataHash: searchableDataHash});
 
           await Resources.updateOne(key, changes, options);
 
@@ -222,10 +222,8 @@ const updateClusterResources = async (req, res, next) => {
             );
             await addResourceYamlHistObj(req, req.org._id, clusterId, selfLink, '');
 
-            const aResource = await apolloCli.findResource(key);
-            if (aResource) {
-              apolloCli.deleteResource(aResource);
-            }
+            await apolloCli.upsertResource({ deleted: true, org_id: req.org._id, cluster_id: req.params.cluster_id, selfLink: selfLink, searchableData: searchableDataObj, searchableDataHash: searchableDataHash});
+
           }
           break;
         }

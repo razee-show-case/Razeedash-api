@@ -22,15 +22,17 @@ module.exports = class ApolloCli {
   }
 
   //add a new resource to db
-  async addResource(resource) {
-    console.log('apolloCli.addResource: ' + JSON.stringify(resource));
+  async upsertResource(resource) {
+    console.log('apolloCli.upsertResource>: ' + JSON.stringify(resource));
     const res = await this._client.mutate({
       mutation: gql`
         mutation ($r: JSON!) {
-         createResource(resource: $r) {
+         upsertResource(resource: $r) {
           id
           org_id
           cluster_id
+          selfLink
+          deleted
           createdAt
         }
       }`,
@@ -38,30 +40,8 @@ module.exports = class ApolloCli {
         'r': resource
       }
     });
-    console.log('apolloCli.addResource res: ' + JSON.stringify(res));
+    console.log('apolloCli.upsertResource<: ' + JSON.stringify(res));
     return res;
-  }
-
-  async findResource(keys) {
-    console.log('apolloCli.findResource>: ' + JSON.stringify(keys));
-    const result = await this._client.query({
-      query: gql`
-        query ($org_id: String!, $cluster_id: String!, $selfLink: String!) {
-         resourceByKeys(org_id: $org_id, cluster_id: $cluster_id, selfLink: $selfLink) {
-          id
-          org_id
-          cluster_id
-          selfLink
-        }
-      }`,
-      variables: {
-        org_id: keys.org_id,
-        cluster_id: keys.cluster_id,
-        selfLink: keys.selfLink
-      }
-    });
-    console.log('apolloCli.findResource<: ' + JSON.stringify(result));
-    return result.data.resourceByKeys;
   }
 
   //mark a resource as deleted
